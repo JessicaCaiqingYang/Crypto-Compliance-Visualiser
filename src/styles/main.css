@@ -1,0 +1,154 @@
+/* Graph-specific styling that works with Cytoscape.js */
+
+/* Tooltip styling */
+.crypto-tooltip {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    max-width: 250px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+}
+
+.crypto-tooltip .tooltip-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #4fc3f7;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+}
+
+.crypto-tooltip table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crypto-tooltip td,
+.crypto-tooltip th {
+    padding: 3px 8px 3px 0;
+    text-align: left;
+    border: none;
+}
+
+.crypto-tooltip th {
+    color: #aaa;
+    font-weight: normal;
+    width: 40%;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Graph interaction states */
+.highlighted {
+    border-width: 3px !important;
+    border-color: #007bff !important;
+    opacity: 1 !important;
+}
+
+/* Suspicious pattern highlighting */
+.suspicious-pattern {
+    animation: suspiciousPulse 2s infinite;
+}
+
+@keyframes suspiciousPulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Search result highlighting */
+.search-highlight {
+    border-width: 4px !important;
+    border-color: #ffc107 !important;
+    border-style: dashed !important;
+}
+
+/* Transaction flow animation */
+.transaction-flow {
+    animation: flowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes flowPulse {
+    0% {
+        line-color: #28a745;
+        width: 2px;
+    }
+
+    50% {
+        line-color: #20c997;
+        width: 6px;
+    }
+
+    100% {
+        line-color: #28a745;
+        width: 2px;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #info-panel {
+        width: 250px;
+    }
+
+    #controls {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    #controls input[type="text"] {
+        width: 200px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    #controls,
+    #info-panel {
+        background-color: #2d2d2d;
+        border-color: #404040;
+    }
+
+    .info-section {
+        background-color: #3d3d3d;
+        color: #e0e0e0;
+    }
+
+    #cy {
+        background-color: #2d2d2d;
+    }
+}

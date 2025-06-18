@@ -151,7 +151,12 @@
         <!-- Control panel with buttons and search -->
         <div id="controls">
             <button id="load-sample-data">Load Sample Data</button>
-            <button id="load-elliptic-data">Load Elliptic Dataset</button>
+            <div style="display: inline-block; margin-left: 20px;">
+                <button id="load-elliptic-data">Load Elliptic Dataset</button>
+                <input type="file" id="features-file" accept=".csv" style="display: none;" />
+                <input type="file" id="classes-file" accept=".csv" style="display: none;" />
+                <input type="file" id="edges-file" accept=".csv" style="display: none;" />
+            </div>
             <button id="detect-patterns">Detect Suspicious Patterns</button>
             <input type="text" id="search-input" placeholder="Search wallet addresses..." />
             <button id="clear-graph">Clear Graph</button>

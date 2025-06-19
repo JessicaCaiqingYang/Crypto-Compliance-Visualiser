@@ -493,6 +493,11 @@ class CryptoNetworkVisualizer {
         const data = node.data();
         const infoPanel = document.getElementById('selected-node-info');
 
+        if (!infoPanel) {
+            console.warn('⚠️ selected-node-info element not found');
+            return;
+        }
+
         let infoHTML = '';
 
         if (this.currentDataset === 'elliptic') {
@@ -545,7 +550,11 @@ class CryptoNetworkVisualizer {
 
     clearSelection() {
         this.cy.elements().removeClass('highlighted');
-        document.getElementById('selected-node-info').innerHTML = '<div>Click on a node to see details</div>';
+
+        const selectedNodeInfoElement = document.getElementById('selected-node-info');
+        if (selectedNodeInfoElement) {
+            selectedNodeInfoElement.innerHTML = '<div>Click on a node to see details</div>';
+        }
     }
 
     searchNodes(searchTerm) {
@@ -645,11 +654,15 @@ class CryptoNetworkVisualizer {
         const nodeCount = this.cy.nodes().length;
         const edgeCount = this.cy.edges().length;
 
-        document.getElementById('node-count').textContent = nodeCount;
-        document.getElementById('edge-count').textContent = edgeCount;
+        const nodeCountElement = document.getElementById('node-count');
+        const edgeCountElement = document.getElementById('edge-count');
+        const patternCountElement = document.getElementById('pattern-count');
 
-        // Reset pattern count
-        document.getElementById('pattern-count').textContent = '0';
+        if (nodeCountElement) nodeCountElement.textContent = nodeCount;
+        if (edgeCountElement) edgeCountElement.textContent = edgeCount;
+        if (patternCountElement) patternCountElement.textContent = '0';
+
+        console.log(`📊 Stats updated: ${nodeCount} nodes, ${edgeCount} edges`);
     }
 
     updateEllipticStats(statistics) {
@@ -662,28 +675,52 @@ class CryptoNetworkVisualizer {
             <div>🔗 Connections: <span>${statistics.edges}</span></div>
         `;
 
-        document.getElementById('network-stats').innerHTML = statsHTML;
+        const networkStatsElement = document.getElementById('network-stats');
+        const patternCountElement = document.getElementById('pattern-count');
 
-        // Update pattern count
-        document.getElementById('pattern-count').textContent = '0';
+        if (networkStatsElement) {
+            networkStatsElement.innerHTML = statsHTML;
+        }
+
+        if (patternCountElement) {
+            patternCountElement.textContent = '0';
+        }
+
+        console.log(`📊 Elliptic stats updated: ${statistics.total} total, ${statistics.illicit} illicit`);
     }
 
     updatePatternInfo(count) {
-        document.getElementById('pattern-count').textContent = count;
+        const patternCountElement = document.getElementById('pattern-count');
+        const patternInfoElement = document.getElementById('pattern-info');
 
-        const patternInfo = document.getElementById('pattern-info');
-        if (count > 0) {
-            const patternType = this.currentDataset === 'elliptic' ?
-                'illicit-to-illicit connections' : 'circular transaction patterns';
-            patternInfo.innerHTML = `<div style="color: #dc3545;">Found ${count} suspicious ${patternType}</div>`;
-        } else {
-            patternInfo.innerHTML = '<div style="color: #28a745;">No suspicious patterns detected</div>';
+        if (patternCountElement) {
+            patternCountElement.textContent = count;
         }
+
+        if (patternInfoElement) {
+            if (count > 0) {
+                const patternType = this.currentDataset === 'elliptic' ?
+                    'illicit-to-illicit connections' : 'circular transaction patterns';
+                patternInfoElement.innerHTML = `<div style="color: #dc3545;">Found ${count} suspicious ${patternType}</div>`;
+            } else {
+                patternInfoElement.innerHTML = '<div style="color: #28a745;">No suspicious patterns detected</div>';
+            }
+        }
+
+        console.log(`🚨 Pattern info updated: ${count} patterns found`);
     }
 
     resetPatternInfo() {
-        document.getElementById('pattern-count').textContent = '0';
-        document.getElementById('pattern-info').innerHTML = '<div>No patterns detected yet</div>';
+        const patternCountElement = document.getElementById('pattern-count');
+        const patternInfoElement = document.getElementById('pattern-info');
+
+        if (patternCountElement) {
+            patternCountElement.textContent = '0';
+        }
+
+        if (patternInfoElement) {
+            patternInfoElement.innerHTML = '<div>No patterns detected yet</div>';
+        }
     }
 
     updateStatus(message, type) {

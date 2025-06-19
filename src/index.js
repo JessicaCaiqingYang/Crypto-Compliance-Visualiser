@@ -446,9 +446,9 @@ class CryptoNetworkVisualizer {
                 edgesFile
             );
 
-            // For performance, load a sample subset
+            // For performance, load a small sample subset
             console.log('🔄 Creating sample subset for visualization...');
-            const sampleData = this.ellipticLoader.loadSampleSubset(300); // Reduced for better performance
+            const sampleData = this.ellipticLoader.loadSampleSubset(200); // Much smaller sample
 
             // Clear existing data and add new data
             this.cy.elements().remove();

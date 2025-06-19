@@ -55,30 +55,63 @@ export class EllipticDataLoader {
 
     async loadCSV(file) {
         return new Promise((resolve, reject) => {
-            console.log(`📄 Loading CSV file: ${file.name}`);
+            console.log(`📄 Loading CSV file: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)`);
 
+            // Check file size - warn if very large
+            const fileSizeMB = file.size / 1024 / 1024;
+            if (fileSizeMB > 100) {
+                console.warn(`⚠️ Large file detected: ${fileSizeMB.toFixed(1)}MB. This may take a while or cause memory issues.`);
+            }
+
+            if (fileSizeMB > 500) {
+                reject(new Error(`File ${file.name} is too large (${fileSizeMB.toFixed(1)}MB). Please use a smaller subset of the data.`));
+                return;
+            }
+
+            // Use streaming approach for large files
             Papa.parse(file, {
                 header: true,
-                dynamicTyping: true,
+                dynamicTyping: false, // Keep as strings to avoid parsing issues
                 skipEmptyLines: true,
                 delimiter: ',',
-                complete: (results) => {
-                    console.log(`✅ Parsed ${file.name}: ${results.data.length} rows`);
+                worker: true, // Use web worker for large files
+                step: function (results, parser) {
+                    // For very large files, we could limit the number of rows here
+                    // For now, let's just log progress every 10000 rows
+                    if (results.meta.cursor && results.meta.cursor % (10000 * 1000) === 0) {
+                        console.log(`📄 Processed ${(results.meta.cursor / 1024 / 1024).toFixed(1)}MB of ${file.name}`);
+                    }
+                },
+                complete: function (results) {
+                    console.log(`✅ Parsed ${file.name}:`);
+                    console.log(`   - Rows: ${results.data.length}`);
+                    console.log(`   - Columns: ${results.meta.fields ? results.meta.fields.length : 'unknown'}`);
+                    console.log(`   - Field names:`, results.meta.fields?.slice(0, 10));
 
                     if (results.errors.length > 0) {
-                        console.warn(`⚠️ CSV parsing warnings for ${file.name}:`, results.errors);
+                        console.warn(`⚠️ CSV parsing warnings for ${file.name}:`, results.errors.slice(0, 5));
                     }
 
                     if (!results.data || results.data.length === 0) {
-                        reject(new Error(`No data found in ${file.name}`));
+                        reject(new Error(`No data rows found in ${file.name}. File may be corrupted or too large.`));
                         return;
+                    }
+
+                    // Show sample of first few rows
+                    console.log(`📊 Sample rows from ${file.name}:`, results.data.slice(0, 3));
+
+                    // For performance, limit the number of rows we process
+                    const maxRows = 50000; // Limit to 50k rows for performance
+                    if (results.data.length > maxRows) {
+                        console.warn(`⚠️ File has ${results.data.length} rows. Limiting to first ${maxRows} rows for performance.`);
+                        results.data = results.data.slice(0, maxRows);
                     }
 
                     resolve(results.data);
                 },
-                error: (error) => {
+                error: function (error) {
                     console.error(`❌ Error parsing ${file.name}:`, error);
-                    reject(error);
+                    reject(new Error(`Failed to parse ${file.name}: ${error.message}`));
                 }
             });
         });
@@ -102,7 +135,8 @@ export class EllipticDataLoader {
                 if (txId !== undefined && txId !== null && classification !== undefined && classification !== null) {
                     classMap[txId] = parseInt(classification);
                 } else if (index < 5) {
-                    console.log('Sample class row structure:', row);
+                    console.log(`Sample class row ${index} structure:`, Object.keys(row));
+                    console.log(`Sample class row ${index} data:`, row);
                 }
             });
 
@@ -118,7 +152,8 @@ export class EllipticDataLoader {
 
                     if (txId === undefined || txId === null) {
                         if (index < 5) {
-                            console.log('Sample feature row structure:', row);
+                            console.log(`Sample feature row ${index} structure:`, Object.keys(row));
+                            console.log(`Sample feature row ${index} data:`, row);
                         }
                         return; // Skip this row
                     }
@@ -139,7 +174,7 @@ export class EllipticDataLoader {
                     // Extract some key features for visualization
                     const features = Object.keys(row).filter(key =>
                         key !== 'txId' && key !== 'id' && key !== '0' &&
-                        key !== 'node_id' && key !== 'transaction_id'
+                        key !== 'node_id' && key !== 'transaction_id' && key !== 'Time step'
                     );
 
                     const featureSum = features.reduce((sum, feature) => {
@@ -156,7 +191,7 @@ export class EllipticDataLoader {
                             suspicious: suspicious.toString(),
                             txId: txId,
                             featureSum: featureSum,
-                            timestep: row.timestep || row.time_step || 1,
+                            timestep: row['Time step'] || row.timestep || row.time_step || 1,
                             // Store original features for analysis
                             features: row
                         }
@@ -235,7 +270,7 @@ export class EllipticDataLoader {
     }
 
     // Load a sample subset for performance
-    loadSampleSubset(maxNodes = 1000) {
+    loadSampleSubset(maxNodes = 500) { // Reduced default from 1000 to 500
         if (!this.isLoaded) {
             throw new Error('Dataset not loaded yet');
         }
@@ -254,33 +289,49 @@ export class EllipticDataLoader {
                 }
             });
 
-            // Separate transactions by class
+            // Separate transactions by class - but limit how many we look at
             const illicitTxs = [];
             const licitTxs = [];
             const unknownTxs = [];
 
-            this.features.forEach(row => {
+            // Only look at first portion of data for performance
+            const maxRowsToExamine = Math.min(this.features.length, 10000);
+            console.log(`📊 Examining first ${maxRowsToExamine} of ${this.features.length} transactions`);
+
+            for (let i = 0; i < maxRowsToExamine; i++) {
+                const row = this.features[i];
                 const txId = row.txId || row.id || row['0'] || row.node_id || row.transaction_id;
-                if (txId === undefined || txId === null) return;
+                if (txId === undefined || txId === null) continue;
 
                 const classification = classMap[txId] || 3;
 
-                if (classification === 1) illicitTxs.push(row);
-                else if (classification === 2) licitTxs.push(row);
-                else unknownTxs.push(row);
-            });
+                if (classification === 1) {
+                    illicitTxs.push(row);
+                } else if (classification === 2) {
+                    licitTxs.push(row);
+                } else {
+                    unknownTxs.push(row);
+                }
 
-            console.log(`📊 Available transactions: ${illicitTxs.length} illicit, ${licitTxs.length} licit, ${unknownTxs.length} unknown`);
+                // Stop early if we have enough of each type
+                if (illicitTxs.length >= maxNodes * 0.2 &&
+                    licitTxs.length >= maxNodes * 0.4 &&
+                    unknownTxs.length >= maxNodes * 0.4) {
+                    break;
+                }
+            }
 
-            // Sample proportionally
-            const sampleSize = Math.min(maxNodes, this.features.length);
-            const illicitSample = illicitTxs.slice(0, Math.min(Math.floor(sampleSize * 0.1), illicitTxs.length));
-            const licitSample = licitTxs.slice(0, Math.min(Math.floor(sampleSize * 0.4), licitTxs.length));
-            const unknownSample = unknownTxs.slice(0, Math.min(Math.floor(sampleSize * 0.5), unknownTxs.length));
+            console.log(`📊 Found transactions: ${illicitTxs.length} illicit, ${licitTxs.length} licit, ${unknownTxs.length} unknown`);
+
+            // Sample proportionally with smaller numbers
+            const sampleSize = Math.min(maxNodes, maxRowsToExamine);
+            const illicitSample = illicitTxs.slice(0, Math.min(Math.floor(sampleSize * 0.15), illicitTxs.length, 50)); // Max 50 illicit
+            const licitSample = licitTxs.slice(0, Math.min(Math.floor(sampleSize * 0.35), licitTxs.length, 200)); // Max 200 licit
+            const unknownSample = unknownTxs.slice(0, Math.min(Math.floor(sampleSize * 0.5), unknownTxs.length, 250)); // Max 250 unknown
 
             const sampleFeatures = [...illicitSample, ...licitSample, ...unknownSample];
 
-            console.log(`📊 Sample: ${illicitSample.length} illicit, ${licitSample.length} licit, ${unknownSample.length} unknown`);
+            console.log(`📊 Final sample: ${illicitSample.length} illicit, ${licitSample.length} licit, ${unknownSample.length} unknown`);
 
             // Temporarily replace full dataset with sample
             const originalFeatures = this.features;
@@ -291,7 +342,7 @@ export class EllipticDataLoader {
             // Restore original dataset
             this.features = originalFeatures;
 
-            console.log(`✅ Sample subset created: ${result.nodes.length} nodes`);
+            console.log(`✅ Sample subset created: ${result.nodes.length} nodes, ${result.edges.length} edges`);
             return result;
 
         } catch (error) {

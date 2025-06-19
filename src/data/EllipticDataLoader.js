@@ -60,28 +60,21 @@ export class EllipticDataLoader {
             // Check file size - warn if very large
             const fileSizeMB = file.size / 1024 / 1024;
             if (fileSizeMB > 100) {
-                console.warn(`⚠️ Large file detected: ${fileSizeMB.toFixed(1)}MB. This may take a while or cause memory issues.`);
+                console.warn(`⚠️ Large file detected: ${fileSizeMB.toFixed(1)}MB. This may take a while.`);
             }
 
-            if (fileSizeMB > 500) {
+            if (fileSizeMB > 800) {
                 reject(new Error(`File ${file.name} is too large (${fileSizeMB.toFixed(1)}MB). Please use a smaller subset of the data.`));
                 return;
             }
 
-            // Use streaming approach for large files
+            // Use simple parsing without web workers (more reliable)
             Papa.parse(file, {
                 header: true,
-                dynamicTyping: false, // Keep as strings to avoid parsing issues
+                dynamicTyping: false,
                 skipEmptyLines: true,
                 delimiter: ',',
-                worker: true, // Use web worker for large files
-                step: function (results, parser) {
-                    // For very large files, we could limit the number of rows here
-                    // For now, let's just log progress every 10000 rows
-                    if (results.meta.cursor && results.meta.cursor % (10000 * 1000) === 0) {
-                        console.log(`📄 Processed ${(results.meta.cursor / 1024 / 1024).toFixed(1)}MB of ${file.name}`);
-                    }
-                },
+                preview: 20000, // Only parse first 20k rows for performance
                 complete: function (results) {
                     console.log(`✅ Parsed ${file.name}:`);
                     console.log(`   - Rows: ${results.data.length}`);
@@ -89,23 +82,16 @@ export class EllipticDataLoader {
                     console.log(`   - Field names:`, results.meta.fields?.slice(0, 10));
 
                     if (results.errors.length > 0) {
-                        console.warn(`⚠️ CSV parsing warnings for ${file.name}:`, results.errors.slice(0, 5));
+                        console.warn(`⚠️ CSV parsing warnings for ${file.name}:`, results.errors.slice(0, 3));
                     }
 
                     if (!results.data || results.data.length === 0) {
-                        reject(new Error(`No data rows found in ${file.name}. File may be corrupted or too large.`));
+                        reject(new Error(`No data rows found in ${file.name}. File may be corrupted.`));
                         return;
                     }
 
                     // Show sample of first few rows
-                    console.log(`📊 Sample rows from ${file.name}:`, results.data.slice(0, 3));
-
-                    // For performance, limit the number of rows we process
-                    const maxRows = 50000; // Limit to 50k rows for performance
-                    if (results.data.length > maxRows) {
-                        console.warn(`⚠️ File has ${results.data.length} rows. Limiting to first ${maxRows} rows for performance.`);
-                        results.data = results.data.slice(0, maxRows);
-                    }
+                    console.log(`📊 Sample rows from ${file.name}:`, results.data.slice(0, 2));
 
                     resolve(results.data);
                 },

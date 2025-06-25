@@ -240,6 +240,16 @@
             /* Important for flex child with flex parent */
         }
 
+        /* Graph container - THE MISSING CSS RULE */
+        #cy {
+            flex: 1;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-subtle);
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+        }
+
         /* Custom animations for enhanced visual appeal */
         @keyframes suspiciousGlow {
             0% {

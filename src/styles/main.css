@@ -152,3 +152,199 @@
         background-color: #2d2d2d;
     }
 }
+
+/* Custom animations for enhanced visual appeal */
+@keyframes suspiciousGlow {
+    0% {
+        filter: drop-shadow(0 0 20px #ef4444) brightness(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 40px #ef4444) drop-shadow(0 0 60px #ef444466) brightness(1.2);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 20px #ef4444) brightness(1);
+    }
+}
+
+@keyframes licitGlow {
+    0% {
+        filter: drop-shadow(0 0 15px #22c55e) brightness(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 30px #22c55e) brightness(1.1);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 15px #22c55e) brightness(1);
+    }
+}
+
+@keyframes selectedPulse {
+    0% {
+        filter: drop-shadow(0 0 30px #8b5cf6);
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 50px #8b5cf6) drop-shadow(0 0 80px #8b5cf666);
+        transform: scale(1.05);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 30px #8b5cf6);
+        transform: scale(1);
+    }
+}
+
+@keyframes backgroundShift {
+
+    0%,
+    100% {
+        background-image:
+            radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    }
+
+    33% {
+        background-image:
+            radial-gradient(circle at 75% 25%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 25% 75%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+    }
+
+    66% {
+        background-image:
+            radial-gradient(circle at 50% 25%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 25% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+    }
+}
+
+/* Graph container with animated background */
+#cy {
+    position: relative;
+}
+
+#cy::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    animation: backgroundShift 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Tooltip styling */
+.crypto-tooltip {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    max-width: 250px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+}
+
+.crypto-tooltip .tooltip-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #4fc3f7;
+    border-bottom: 1px solid #333;
+    padding-bottom: 4px;
+}
+
+.crypto-tooltip table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crypto-tooltip td,
+.crypto-tooltip th {
+    padding: 3px 8px 3px 0;
+    text-align: left;
+    border: none;
+}
+
+.crypto-tooltip th {
+    color: #aaa;
+    font-weight: normal;
+    width: 40%;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Graph interaction states - will be applied by Cytoscape.js */
+.highlighted {
+    /* Enhanced highlighting will be handled by Cytoscape styling */
+}
+
+.suspicious-pattern {
+    /* Suspicious pattern animations will be handled by Cytoscape styling */
+    animation: suspiciousGlow 2s infinite;
+}
+
+.search-highlight {
+    /* Search highlighting will be handled by Cytoscape styling */
+}
+
+.transaction-flow {
+    /* Transaction flow animations will be handled by Cytoscape styling */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .crypto-tooltip {
+        font-size: 11px;
+        padding: 8px;
+        max-width: 200px;
+    }
+}
+
+/* Scrollbar styling for consistency */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #131318;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+}

@@ -3,9 +3,6 @@ import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
 import popper from 'cytoscape-popper';
 
-// Import our CSS
-import './styles/main.css';
-
 // Import data processing modules
 import { EllipticDataLoader } from './data/EllipticDataLoader.js';
 
@@ -51,142 +48,83 @@ class CryptoNetworkVisualizer {
     }
 
     initializeGraph() {
+        // Check if container exists and has dimensions
+        const container = document.getElementById('cy');
+        if (!container) {
+            console.error('❌ Container #cy not found');
+            return;
+        }
+
+        console.log('📊 Container found, dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+
         // Create the main Cytoscape instance
         this.cy = cytoscape({
-            container: document.getElementById('cy'),
+            container: container,
 
             style: [
-                // Base node styling
+                // Simplified node styling for debugging
                 {
                     selector: 'node',
                     style: {
-                        'width': 30,
-                        'height': 30,
+                        'width': 60,
+                        'height': 60,
                         'label': 'data(label)',
-                        'font-size': '10px',
+                        'font-family': 'Arial, sans-serif',
+                        'font-size': '14px',
+                        'font-weight': 'bold',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'color': '#333',
+                        'color': '#ffffff',
                         'text-outline-width': 2,
-                        'text-outline-color': '#fff',
-                        'border-width': 2,
-                        'background-color': '#4A90E2'
+                        'text-outline-color': '#000000',
+                        'border-width': 3,
+                        'background-color': '#3b82f6',
+                        'border-color': '#1e40af'
                     }
                 },
 
-                // Wallet nodes (sample data)
+                // Wallet nodes - blue
                 {
                     selector: 'node[type="wallet"]',
                     style: {
-                        'background-color': '#4A90E2',
-                        'width': 'mapData(balance, 0, 1000, 20, 50)',
-                        'height': 'mapData(balance, 0, 1000, 20, 50)',
-                        'border-color': '#2c5aa0',
+                        'background-color': '#3b82f6',
+                        'border-color': '#1e40af',
                         'shape': 'ellipse'
                     }
                 },
 
-                // Exchange nodes (sample data)
+                // Exchange nodes - orange diamond
                 {
                     selector: 'node[type="exchange"]',
                     style: {
-                        'background-color': '#F5A623',
+                        'background-color': '#f59e0b',
+                        'border-color': '#d97706',
                         'shape': 'diamond',
-                        'width': 40,
-                        'height': 40,
-                        'border-color': '#d48806'
+                        'width': 80,
+                        'height': 80
                     }
                 },
 
-                // Transaction nodes (Elliptic data)
-                {
-                    selector: 'node[type="transaction"]',
-                    style: {
-                        'width': 25,
-                        'height': 25,
-                        'shape': 'ellipse',
-                        'font-size': '8px'
-                    }
-                },
-
-                // Illicit transactions (red)
-                {
-                    selector: 'node[classification="illicit"]',
-                    style: {
-                        'background-color': '#dc3545',
-                        'border-color': '#721c24',
-                        'border-width': 3
-                    }
-                },
-
-                // Licit transactions (green)
-                {
-                    selector: 'node[classification="licit"]',
-                    style: {
-                        'background-color': '#28a745',
-                        'border-color': '#155724',
-                        'border-width': 2
-                    }
-                },
-
-                // Unknown transactions (gray)
-                {
-                    selector: 'node[classification="unknown"]',
-                    style: {
-                        'background-color': '#6c757d',
-                        'border-color': '#495057',
-                        'border-width': 1
-                    }
-                },
-
-                // Suspicious nodes (sample data)
+                // Suspicious nodes - red
                 {
                     selector: 'node[suspicious="true"]',
                     style: {
-                        'background-color': '#D0021B',
-                        'border-color': '#8B0000',
-                        'border-width': 3
+                        'background-color': '#ef4444',
+                        'border-color': '#dc2626',
+                        'border-width': 5
                     }
                 },
 
-                // Base edge styling
+                // Edge styling
                 {
                     selector: 'edge',
                     style: {
-                        'width': 2,
-                        'line-color': '#999',
-                        'target-arrow-color': '#999',
+                        'width': 4,
+                        'line-color': '#64748b',
+                        'target-arrow-color': '#64748b',
                         'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier',
-                        'opacity': 0.7
-                    }
-                },
-
-                // Transaction edges with amount mapping
-                {
-                    selector: 'edge[amount]',
-                    style: {
-                        'width': 'mapData(amount, 0, 100, 1, 6)'
-                    }
-                },
-
-                // Large transaction edges
-                {
-                    selector: 'edge[amount > 50]',
-                    style: {
-                        'line-color': '#ff6b6b',
-                        'target-arrow-color': '#ff6b6b'
-                    }
-                },
-
-                // Transaction flow edges (Elliptic data)
-                {
-                    selector: 'edge[type="transaction_flow"]',
-                    style: {
-                        'width': 1,
-                        'line-color': '#666',
-                        'target-arrow-color': '#666',
-                        'opacity': 0.6
+                        'target-arrow-size': 15,
+                        'curve-style': 'bezier'
                     }
                 },
 
@@ -194,59 +132,20 @@ class CryptoNetworkVisualizer {
                 {
                     selector: ':selected',
                     style: {
-                        'border-width': 4,
-                        'border-color': '#007bff'
-                    }
-                },
-
-                // Highlighted elements
-                {
-                    selector: '.highlighted',
-                    style: {
-                        'border-width': 3,
-                        'border-color': '#007bff',
-                        'opacity': 1
-                    }
-                },
-
-                // Suspicious patterns
-                {
-                    selector: '.suspicious-pattern',
-                    style: {
-                        'line-color': '#dc3545',
-                        'target-arrow-color': '#dc3545',
-                        'width': 4,
-                        'opacity': 1
-                    }
-                },
-
-                // Search highlights
-                {
-                    selector: '.search-highlight',
-                    style: {
-                        'border-width': 4,
-                        'border-color': '#ffc107',
-                        'border-style': 'dashed'
+                        'border-width': 6,
+                        'border-color': '#8b5cf6'
                     }
                 }
             ],
 
             layout: {
-                name: 'cose-bilkent',
-                animate: true,
-                animationDuration: 1000,
-                nodeRepulsion: 4500,
-                idealEdgeLength: 50,
-                edgeElasticity: 0.45,
-                nestingFactor: 0.1,
-                gravity: 0.25,
-                numIter: 2500,
-                tile: true,
-                quality: 'default'
+                name: 'circle',
+                fit: true,
+                padding: 50
             }
         });
 
-        console.log('📊 Graph engine initialized');
+        console.log('📊 Graph engine initialized with container:', container.offsetWidth, 'x', container.offsetHeight);
     }
 
     setupEventHandlers() {
@@ -293,6 +192,21 @@ class CryptoNetworkVisualizer {
     loadSampleData() {
         console.log('📥 Loading sample data...');
 
+        // Check if Cytoscape is initialized
+        if (!this.cy) {
+            console.error('❌ Cytoscape not initialized');
+            return;
+        }
+
+        // Check if container exists
+        const container = document.getElementById('cy');
+        if (!container) {
+            console.error('❌ Container element #cy not found');
+            return;
+        }
+
+        console.log('📊 Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+
         const sampleData = {
             nodes: [
                 { data: { id: 'wallet1', label: 'Wallet A', type: 'wallet', balance: 150.5, address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' } },
@@ -310,88 +224,108 @@ class CryptoNetworkVisualizer {
             ]
         };
 
-        // Clear existing data and add new data
-        this.cy.elements().remove();
-        this.cy.add(sampleData.nodes);
-        this.cy.add(sampleData.edges);
+        console.log('📊 Sample data created:', sampleData);
+        console.log('📊 Adding', sampleData.nodes.length, 'nodes and', sampleData.edges.length, 'edges');
 
-        // Run layout
-        this.cy.layout({
-            name: 'cose-bilkent',
-            animate: true,
-            animationDuration: 1500
-        }).run();
+        try {
+            // Clear existing data and add new data
+            this.cy.elements().remove();
+            console.log('🗑️ Cleared existing elements');
 
-        // Update tracking
-        this.currentDataset = 'sample';
+            this.cy.add(sampleData.nodes);
+            console.log('✅ Added nodes:', this.cy.nodes().length);
 
-        // Update statistics
-        this.updateNetworkStats();
-        this.resetPatternInfo();
+            this.cy.add(sampleData.edges);
+            console.log('✅ Added edges:', this.cy.edges().length);
 
-        console.log('✅ Sample data loaded successfully');
+            // Force a fit and center to make sure nodes are visible
+            this.cy.fit();
+            this.cy.center();
+            console.log('🎯 Fit and center applied');
+
+            // Run layout with built-in circle layout (more reliable)
+            console.log('🎯 Running circle layout...');
+            const layout = this.cy.layout({
+                name: 'circle',
+                fit: true,
+                padding: 50,
+                radius: 200,
+                animate: true,
+                animationDuration: 1000
+            });
+
+            layout.run();
+
+            // After layout, try fit again
+            layout.on('layoutstop', () => {
+                console.log('📍 Layout completed');
+                this.cy.fit();
+                this.cy.center();
+                console.log('📍 Final fit and center applied');
+
+                // Log node positions for debugging
+                this.cy.nodes().forEach(node => {
+                    const pos = node.position();
+                    console.log(`Node ${node.id()}: position (${pos.x}, ${pos.y}), rendered: ${node.renderedBoundingBox()}`);
+                });
+            });
+
+            // Update tracking
+            this.currentDataset = 'sample';
+
+            // Update statistics
+            this.updateNetworkStats();
+            this.resetPatternInfo();
+
+            console.log('✅ Sample data loaded successfully');
+            console.log('📈 Final check - Nodes:', this.cy.nodes().length, 'Edges:', this.cy.edges().length);
+
+            // Force a resize in case of container issues
+            setTimeout(() => {
+                this.cy.resize();
+                this.cy.fit();
+                console.log('🔄 Forced resize and fit after timeout');
+            }, 100);
+
+        } catch (error) {
+            console.error('❌ Error loading sample data:', error);
+        }
     }
 
     promptForEllipticFiles() {
-        // Create file upload modal
+        // Create modern file upload modal
         const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
         modal.id = 'file-upload-modal';
         modal.innerHTML = `
-            <div style="
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
-                align-items: center; justify-content: center;
-            ">
-                <div style="
-                    background: white; padding: 30px; border-radius: 10px; 
-                    max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                ">
-                    <h3 style="margin-top: 0; color: #333;">Load Elliptic Dataset</h3>
-                    <p style="color: #666; margin-bottom: 20px;">
-                        Please select the three CSV files from the Elliptic dataset:
-                    </p>
-                    
-                    <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-                            Features File (txs_features.csv):
-                        </label>
-                        <input type="file" id="features-upload" accept=".csv" style="width: 100%;" />
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-                            Classes File (txs_classes.csv):
-                        </label>
-                        <input type="file" id="classes-upload" accept=".csv" style="width: 100%;" />
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-                            Edges File (txs_edgelist.csv):
-                        </label>
-                        <input type="file" id="edges-upload" accept=".csv" style="width: 100%;" />
-                    </div>
-                    
-                    <div style="
-                        background: #f8f9fa; padding: 15px; border-radius: 5px; 
-                        margin: 20px 0; border-left: 4px solid #007bff;
-                    ">
-                        <strong>📁 Dataset Info:</strong><br>
-                        Download from: <a href="https://drive.google.com/drive/folders/1MRPXz79Lu_JGLlJ21MDfML44dKN9R08l" target="_blank">Elliptic++ Google Drive</a><br>
-                        <small style="color: #666;">Real Bitcoin transactions with illicit/licit labels</small>
-                    </div>
-                    
-                    <div style="margin-top: 25px; text-align: right;">
-                        <button id="cancel-upload-btn" style="
-                            background: #6c757d; color: white; border: none; 
-                            padding: 10px 20px; border-radius: 5px; margin-right: 10px;
-                            cursor: pointer;
-                        ">Cancel</button>
-                        <button id="load-files-btn" style="
-                            background: #007bff; color: white; border: none; 
-                            padding: 10px 20px; border-radius: 5px; cursor: pointer;
-                        ">Load Dataset</button>
-                    </div>
+            <div class="modal-content">
+                <h3>Load Elliptic Dataset</h3>
+                <p>Please select the three CSV files from the Elliptic dataset to analyze real Bitcoin transaction networks with ground-truth labels.</p>
+                
+                <div class="file-input-group">
+                    <label>Features File (txs_features.csv):</label>
+                    <input type="file" id="features-upload" accept=".csv" />
+                </div>
+                
+                <div class="file-input-group">
+                    <label>Classes File (txs_classes.csv):</label>
+                    <input type="file" id="classes-upload" accept=".csv" />
+                </div>
+                
+                <div class="file-input-group">
+                    <label>Edges File (txs_edgelist.csv):</label>
+                    <input type="file" id="edges-upload" accept=".csv" />
+                </div>
+                
+                <div class="info-box">
+                    <strong>📁 Dataset Source:</strong>
+                    Download from: <a href="https://drive.google.com/drive/folders/1MRPXz79Lu_JGLlJ21MDfML44dKN9R08l" target="_blank">Elliptic++ Google Drive</a><br>
+                    <small>Real Bitcoin transactions with illicit/licit classifications from financial crime experts</small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button id="cancel-upload-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="load-files-btn" class="btn btn-primary">Load Dataset</button>
                 </div>
             </div>
         `;
@@ -446,7 +380,7 @@ class CryptoNetworkVisualizer {
                 edgesFile
             );
 
-            // For performance, load a small sample subset
+            // For performance, load a sample subset
             console.log('🔄 Creating sample subset for visualization...');
             const sampleData = this.ellipticLoader.loadSampleSubset(200); // Much smaller sample
 
@@ -701,9 +635,9 @@ class CryptoNetworkVisualizer {
             if (count > 0) {
                 const patternType = this.currentDataset === 'elliptic' ?
                     'illicit-to-illicit connections' : 'circular transaction patterns';
-                patternInfoElement.innerHTML = `<div style="color: #dc3545;">Found ${count} suspicious ${patternType}</div>`;
+                patternInfoElement.innerHTML = `<div class="pattern-alert danger">Found ${count} suspicious ${patternType}</div>`;
             } else {
-                patternInfoElement.innerHTML = '<div style="color: #28a745;">No suspicious patterns detected</div>';
+                patternInfoElement.innerHTML = '<div class="pattern-alert success">No suspicious patterns detected</div>';
             }
         }
 
@@ -719,7 +653,7 @@ class CryptoNetworkVisualizer {
         }
 
         if (patternInfoElement) {
-            patternInfoElement.innerHTML = '<div>No patterns detected yet</div>';
+            patternInfoElement.innerHTML = '<div class="pattern-alert success">No patterns detected yet</div>';
         }
     }
 

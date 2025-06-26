@@ -265,8 +265,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Contact
 
 - **GitHub Issues** - [Report bugs or request features](https://github.com/your-username/crypto-network-visualizer/issues)
-- **Email** - your.email@example.com
-- **LinkedIn** - [Your Professional Profile](https://linkedin.com/in/yourprofile)
+- **Email** - caiqingyang28@gmail.com
+- **LinkedIn** - www.linkedin.com/in/caiqingyang
 
 ---
 
